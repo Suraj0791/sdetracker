@@ -298,27 +298,40 @@ export default function SDETableAdvanced({
   return (
     <div className="space-y-4">
       {/* Column Visibility Toggle */}
-      <div className="flex flex-wrap gap-2 p-4 bg-card border border-border rounded-lg">
-        <div className="text-sm font-medium text-muted-foreground mr-2">
-          Show Columns:
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="p-3 border-b border-border bg-secondary/30">
+          <div className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Eye className="w-4 h-4" />
+            Display Columns
+          </div>
         </div>
-        {table
-          .getAllLeafColumns()
-          .filter((column) => column.id !== "expand" && column.id !== "actions")
-          .map((column) => (
-            <label
-              key={column.id}
-              className="flex items-center gap-1.5 px-2 py-1 bg-secondary hover:bg-secondary/80 rounded text-sm cursor-pointer transition-colors"
-            >
-              <input
-                type="checkbox"
-                checked={column.getIsVisible()}
-                onChange={column.getToggleVisibilityHandler()}
-                className="w-3 h-3 rounded border-border"
-              />
-              <span className="capitalize">{column.id.replace("_", " ")}</span>
-            </label>
-          ))}
+        <div className="flex flex-wrap gap-2 p-3">
+          {table
+            .getAllLeafColumns()
+            .filter(
+              (column) => column.id !== "expand" && column.id !== "actions"
+            )
+            .map((column) => (
+              <button
+                key={column.id}
+                onClick={column.getToggleVisibilityHandler()}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                  column.getIsVisible()
+                    ? "bg-primary/10 border-primary/30 text-primary"
+                    : "bg-secondary/50 border-border text-muted-foreground hover:bg-secondary"
+                }`}
+              >
+                {column.getIsVisible() ? (
+                  <Eye className="w-3 h-3" />
+                ) : (
+                  <EyeOff className="w-3 h-3" />
+                )}
+                <span className="capitalize">
+                  {column.id.replace(/_/g, " ")}
+                </span>
+              </button>
+            ))}
+        </div>
       </div>
 
       {/* Table */}

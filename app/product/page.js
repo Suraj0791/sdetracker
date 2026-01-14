@@ -11,6 +11,7 @@ import ProductStats from "@/components/product/ProductStats";
 import ProductFilters from "@/components/product/ProductFilters";
 import ProductDialog from "@/components/product/ProductDialog";
 import ProductDetailsModal from "@/components/product/ProductDetailsModal";
+import { useSearchParams } from "next/navigation";
 
 export default function ProductPage() {
   const router = useRouter();
@@ -31,12 +32,28 @@ export default function ProductPage() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [viewingJob, setViewingJob] = useState(null);
 
+  const searchParams = useSearchParams();
+
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/auth/login");
     }
   }, [user, authLoading, router]);
+
+  // Handle auto-import from Opportunities page
+  useEffect(() => {
+    if (searchParams.get("import") === "true") {
+      const savedJob = sessionStorage.getItem("importedJob");
+      if (savedJob) {
+        setEditingJob(JSON.parse(savedJob));
+        setDialogOpen(true);
+        sessionStorage.removeItem("importedJob");
+        // Clear URL param without refresh
+        window.history.replaceState(null, "", "/product");
+      }
+    }
+  }, [searchParams]);
 
   // Load jobs and auto-seed if needed
   useEffect(() => {
@@ -181,7 +198,7 @@ export default function ProductPage() {
 
   const handleSaveJob = async (jobData) => {
     try {
-      if (editingJob) {
+      if (editingJob && editingJob.id) {
         await supabaseJobOps.update("product_jobs", editingJob.id, jobData);
       } else {
         await supabaseJobOps.add("product_jobs", jobData);

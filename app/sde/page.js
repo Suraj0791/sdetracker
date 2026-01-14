@@ -11,6 +11,7 @@ import StatsCards from "@/components/sde/StatsCards";
 import FilterSidebar from "@/components/sde/FilterSidebar";
 import AddEditDialog from "@/components/sde/AddEditDialog";
 import JobDetailsModal from "@/components/sde/JobDetailsModal";
+import { useSearchParams } from "next/navigation";
 
 export default function SDEPage() {
   const router = useRouter();
@@ -32,12 +33,28 @@ export default function SDEPage() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [viewingJob, setViewingJob] = useState(null);
 
+  const searchParams = useSearchParams();
+
   // Redirect if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/auth/login");
     }
   }, [user, authLoading, router]);
+
+  // Handle auto-import from Opportunities page
+  useEffect(() => {
+    if (searchParams.get("import") === "true") {
+      const savedJob = sessionStorage.getItem("importedJob");
+      if (savedJob) {
+        setEditingJob(JSON.parse(savedJob));
+        setDialogOpen(true);
+        sessionStorage.removeItem("importedJob");
+        // Clear URL param without refresh
+        window.history.replaceState(null, "", "/sde");
+      }
+    }
+  }, [searchParams]);
 
   // Load jobs and auto-seed if needed
   useEffect(() => {
@@ -187,7 +204,7 @@ export default function SDEPage() {
 
   const handleSaveJob = async (jobData) => {
     try {
-      if (editingJob) {
+      if (editingJob && editingJob.id) {
         await supabaseJobOps.update("sde_jobs", editingJob.id, jobData);
       } else {
         await supabaseJobOps.add("sde_jobs", jobData);

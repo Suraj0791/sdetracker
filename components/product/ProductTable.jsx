@@ -6,6 +6,8 @@ import {
   ChevronDown,
   ChevronRight,
   Check,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { PRIORITY_COLORS, STATUS_COLORS } from "@/lib/constants";
 
@@ -84,34 +86,31 @@ export default function ProductTable({
   return (
     <div className="space-y-4">
       {/* Column Toggles */}
-      <div className="bg-card border border-border rounded-lg p-3">
-        <div className="flex items-center gap-2 mb-2 text-sm font-medium text-muted-foreground px-1">
-          Show Columns:
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="p-3 border-b border-border bg-secondary/30">
+          <div className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Eye className="w-4 h-4" />
+            Display Columns
+          </div>
         </div>
-        <div className="flex flex-wrap gap-x-4 gap-y-2">
+        <div className="flex flex-wrap gap-2 p-3">
           {columns.map((col) => (
-            <label
+            <button
               key={col.id}
-              className="flex items-center gap-2 cursor-pointer group"
+              onClick={() => toggleColumn(col.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                col.visible
+                  ? "bg-primary/10 border-primary/30 text-primary"
+                  : "bg-secondary/50 border-border text-muted-foreground hover:bg-secondary"
+              }`}
             >
-              <div className="relative flex items-center">
-                <input
-                  type="checkbox"
-                  checked={col.visible}
-                  onChange={() => toggleColumn(col.id)}
-                  className="peer h-4 w-4 shrink-0 rounded border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground accent-primary"
-                />
-              </div>
-              <span
-                className={`text-sm transition-colors ${
-                  col.visible
-                    ? "text-foreground"
-                    : "text-muted-foreground group-hover:text-foreground"
-                }`}
-              >
-                {col.label}
-              </span>
-            </label>
+              {col.visible ? (
+                <Eye className="w-3 h-3" />
+              ) : (
+                <EyeOff className="w-3 h-3" />
+              )}
+              <span>{col.label}</span>
+            </button>
           ))}
         </div>
       </div>

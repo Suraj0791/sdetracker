@@ -92,9 +92,9 @@ export default function ProductDialog({ job, onSave, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-card border border-border rounded-xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <h2 className="text-2xl font-bold">
-            {job ? "Edit Product Job" : "Add Product Job"}
+        <div className="flex items-center justify-between p-4 md:p-6 border-b border-border">
+          <h2 className="text-xl md:text-2xl font-bold">
+            {job?.id ? "Edit Product Job" : "Add Product Job"}
           </h2>
           <button
             onClick={onClose}
@@ -106,7 +106,7 @@ export default function ProductDialog({ job, onSave, onClose }) {
 
         <form
           onSubmit={handleSubmit}
-          className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-140px)] scrollbar-thin"
+          className="p-4 md:p-6 space-y-4 md:space-y-6 overflow-y-auto max-h-[calc(90vh-140px)] scrollbar-thin"
         >
           {/* Company Info */}
           <div className="grid md:grid-cols-2 gap-4">
@@ -332,19 +332,19 @@ export default function ProductDialog({ job, onSave, onClose }) {
           </div>
         </form>
 
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-border bg-secondary/20">
+        <div className="flex items-center justify-end gap-3 p-4 md:p-6 border-t border-border bg-secondary/20">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg transition-colors"
+            className="px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg transition-colors text-sm md:text-base"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors"
+            className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors text-sm md:text-base"
           >
-            {job ? "Update" : "Add"} Job
+            {job?.id ? "Update" : "Add"} Job
           </button>
         </div>
       </div>

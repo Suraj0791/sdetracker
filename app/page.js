@@ -6,10 +6,10 @@ export default function HomePage() {
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Hero Section */}
       <div className="text-center space-y-4 py-12">
-        <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-purple-400 to-primary bg-clip-text text-transparent">
+        <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary via-purple-400 to-primary bg-clip-text text-transparent">
           Career Tracker
         </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
           Your personal hub for tracking job applications and career resources
         </p>
       </div>
@@ -94,7 +94,7 @@ export default function HomePage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-3 gap-4 mt-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-8 px-4 md:px-0">
         <div className="p-6 rounded-lg bg-card/50 border border-border text-center">
           <div className="text-3xl font-bold text-primary">0</div>
           <div className="text-sm text-muted-foreground mt-1">
@@ -107,7 +107,7 @@ export default function HomePage() {
             Resources Saved
           </div>
         </div>
-        <div className="p-6 rounded-lg bg-card/50 border border-border text-center">
+        <div className="p-6 rounded-lg bg-card/50 border border-border text-center sm:col-span-2 md:col-span-1">
           <div className="text-3xl font-bold text-blue-400">0</div>
           <div className="text-sm text-muted-foreground mt-1">
             High Priority
