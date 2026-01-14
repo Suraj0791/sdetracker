@@ -10,6 +10,7 @@ import JobsTable from "@/components/sde/JobsTable";
 import StatsCards from "@/components/sde/StatsCards";
 import FilterSidebar from "@/components/sde/FilterSidebar";
 import AddEditDialog from "@/components/sde/AddEditDialog";
+import JobDetailsModal from "@/components/sde/JobDetailsModal";
 
 export default function SDEPage() {
   const router = useRouter();
@@ -28,6 +29,8 @@ export default function SDEPage() {
   const [editingJob, setEditingJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [viewingJob, setViewingJob] = useState(null);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -63,29 +66,53 @@ export default function SDEPage() {
     }
   };
 
+  // Handle quick filter from stats cards
+  const handleQuickFilter = (filter) => {
+    setActiveFilter(filter);
+    // Clear sidebar filters when using quick filter
+    if (filter !== "all") {
+      setFilters({
+        categories: [],
+        statuses: [],
+        priorities: [],
+        referralFriendly: [],
+      });
+    }
+  };
+
   // Filter jobs
   useEffect(() => {
     let result = [...jobs];
 
-    if (filters.categories.length > 0) {
+    // Apply quick filter from stats cards
+    if (activeFilter === "applied") {
+      result = result.filter((job) => job.application_status === "Applied");
+    } else if (activeFilter === "interviews") {
+      result = result.filter((job) => job.application_status === "Interview");
+    } else if (activeFilter === "highPriority") {
+      result = result.filter((job) => parseInt(job.priority) >= 4);
+    }
+    // If "all", apply sidebar filters
+
+    if (activeFilter === "all" && filters.categories.length > 0) {
       result = result.filter((job) =>
         filters.categories.includes(job.category)
       );
     }
 
-    if (filters.statuses.length > 0) {
+    if (activeFilter === "all" && filters.statuses.length > 0) {
       result = result.filter((job) =>
         filters.statuses.includes(job.application_status)
       );
     }
 
-    if (filters.priorities.length > 0) {
+    if (activeFilter === "all" && filters.priorities.length > 0) {
       result = result.filter((job) =>
         filters.priorities.includes(parseInt(job.priority))
       );
     }
 
-    if (filters.referralFriendly.length > 0) {
+    if (activeFilter === "all" && filters.referralFriendly.length > 0) {
       result = result.filter((job) =>
         filters.referralFriendly.includes(job.referral_friendly)
       );
@@ -103,7 +130,7 @@ export default function SDEPage() {
     }
 
     setFilteredJobs(result);
-  }, [jobs, filters, searchQuery]);
+  }, [jobs, filters, searchQuery, activeFilter]);
 
   const handleImportCSV = (event) => {
     const file = event.target.files?.[0];
@@ -228,7 +255,11 @@ export default function SDEPage() {
         </div>
       </div>
 
-      <StatsCards jobs={jobs} />
+      <StatsCards
+        jobs={jobs}
+        onFilterClick={handleQuickFilter}
+        activeFilter={activeFilter}
+      />
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
@@ -265,6 +296,7 @@ export default function SDEPage() {
             jobs={filteredJobs}
             onEdit={handleEditJob}
             onDelete={handleDeleteJob}
+            onViewDetails={setViewingJob}
           />
         </div>
       </div>
@@ -274,6 +306,14 @@ export default function SDEPage() {
           job={editingJob}
           onSave={handleSaveJob}
           onClose={() => setDialogOpen(false)}
+        />
+      )}
+
+      {viewingJob && (
+        <JobDetailsModal
+          job={viewingJob}
+          onClose={() => setViewingJob(null)}
+          onEdit={handleEditJob}
         />
       )}
     </div>

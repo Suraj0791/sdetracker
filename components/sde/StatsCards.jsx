@@ -1,11 +1,11 @@
 import { Briefcase, CheckCircle, Clock, Star } from "lucide-react";
 
-export default function StatsCards({ jobs }) {
+export default function StatsCards({ jobs, onFilterClick, activeFilter }) {
   const stats = {
     total: jobs.length,
-    applied: jobs.filter((j) => j.Application_Status === "Applied").length,
-    interviews: jobs.filter((j) => j.Application_Status === "Interview").length,
-    highPriority: jobs.filter((j) => parseInt(j.Priority) >= 4).length,
+    applied: jobs.filter((j) => j.application_status === "Applied").length,
+    interviews: jobs.filter((j) => j.application_status === "Interview").length,
+    highPriority: jobs.filter((j) => parseInt(j.priority) >= 4).length,
   };
 
   const cards = [
@@ -15,6 +15,7 @@ export default function StatsCards({ jobs }) {
       icon: Briefcase,
       color: "text-primary",
       bgColor: "bg-primary/10",
+      filter: "all",
     },
     {
       label: "Applied",
@@ -22,6 +23,7 @@ export default function StatsCards({ jobs }) {
       icon: CheckCircle,
       color: "text-blue-400",
       bgColor: "bg-blue-500/10",
+      filter: "applied",
     },
     {
       label: "Interviews",
@@ -29,6 +31,7 @@ export default function StatsCards({ jobs }) {
       icon: Clock,
       color: "text-purple-400",
       bgColor: "bg-purple-500/10",
+      filter: "interviews",
     },
     {
       label: "High Priority",
@@ -36,6 +39,7 @@ export default function StatsCards({ jobs }) {
       icon: Star,
       color: "text-orange-400",
       bgColor: "bg-orange-500/10",
+      filter: "highPriority",
     },
   ];
 
@@ -43,10 +47,17 @@ export default function StatsCards({ jobs }) {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {cards.map((card) => {
         const Icon = card.icon;
+        const isActive = activeFilter === card.filter;
+
         return (
-          <div
+          <button
             key={card.label}
-            className="rounded-lg border border-border bg-card p-4 hover:border-primary/50 transition-colors"
+            onClick={() => onFilterClick(card.filter)}
+            className={`rounded-lg border bg-card p-4 transition-all text-left ${
+              isActive
+                ? "border-primary shadow-lg shadow-primary/20 scale-105"
+                : "border-border hover:border-primary/50 hover:shadow-md"
+            }`}
           >
             <div className="flex items-center justify-between mb-2">
               <div className={`p-2 rounded-lg ${card.bgColor}`}>
@@ -59,7 +70,7 @@ export default function StatsCards({ jobs }) {
               </div>
               <div className="text-sm text-muted-foreground">{card.label}</div>
             </div>
-          </div>
+          </button>
         );
       })}
     </div>

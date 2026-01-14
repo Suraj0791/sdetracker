@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -19,7 +19,12 @@ import {
 } from "lucide-react";
 import { PRIORITY_COLORS, STATUS_COLORS } from "@/lib/constants";
 
-export default function SDETableAdvanced({ jobs, onEdit, onDelete }) {
+export default function SDETableAdvanced({
+  jobs,
+  onEdit,
+  onDelete,
+  onViewDetails,
+}) {
   const [sorting, setSorting] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({
     // Show these by default
@@ -36,8 +41,10 @@ export default function SDETableAdvanced({ jobs, onEdit, onDelete }) {
     ppo_probability: false,
     referral_friendly: false,
     referral_status: false,
+    referral_name: false,
     careers_page: false,
     notes: false,
+    interview_notes: false,
   });
   const [expandedRows, setExpandedRows] = useState({});
 
@@ -71,16 +78,21 @@ export default function SDETableAdvanced({ jobs, onEdit, onDelete }) {
         cell: ({ row }) => (
           <div className="flex items-center gap-2 min-w-[150px]">
             <div>
-              <div className="font-medium">{row.original.Company}</div>
-              {row.original.Country && (
+              <button
+                onClick={() => onViewDetails(row.original)}
+                className="font-medium hover:text-primary transition-colors text-left"
+              >
+                {row.original.company}
+              </button>
+              {row.original.country && (
                 <div className="text-xs text-muted-foreground">
-                  {row.original.Country}
+                  {row.original.country}
                 </div>
               )}
             </div>
-            {row.original.Careers_Page && (
+            {row.original.careers_page && (
               <a
-                href={row.original.Careers_Page}
+                href={row.original.careers_page}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:text-primary/80"
@@ -106,10 +118,10 @@ export default function SDETableAdvanced({ jobs, onEdit, onDelete }) {
         header: "Role",
         cell: ({ row }) => (
           <div className="min-w-[120px]">
-            <div className="font-medium text-sm">{row.original.Role}</div>
-            {row.original.Domain && (
+            <div className="font-medium text-sm">{row.original.role}</div>
+            {row.original.domain && (
               <div className="text-xs text-muted-foreground">
-                {row.original.Domain}
+                {row.original.domain}
               </div>
             )}
           </div>
@@ -174,6 +186,18 @@ export default function SDETableAdvanced({ jobs, onEdit, onDelete }) {
         header: "Ref Status",
       },
       {
+        accessorKey: "referral_name",
+        header: "Referral Contact",
+        cell: ({ getValue }) => {
+          const name = getValue();
+          return name ? (
+            <span className="text-sm text-muted-foreground truncate max-w-[150px] block">
+              {name}
+            </span>
+          ) : null;
+        },
+      },
+      {
         accessorKey: "careers_page",
         header: "Careers URL",
         cell: ({ getValue }) => {
@@ -198,6 +222,23 @@ export default function SDETableAdvanced({ jobs, onEdit, onDelete }) {
             {getValue()}
           </span>
         ),
+      },
+      {
+        id: "interview_notes",
+        header: "Interview Notes",
+        accessorFn: (row) => row.metadata?.interview_notes || "",
+        cell: ({ getValue }) => {
+          const notes = getValue();
+          return notes ? (
+            <span
+              className="text-sm text-muted-foreground truncate max-w-[200px] block"
+              title={notes}
+            >
+              {notes.substring(0, 50)}
+              {notes.length > 50 ? "..." : ""}
+            </span>
+          ) : null;
+        },
       },
       {
         id: "actions",
@@ -313,11 +354,8 @@ export default function SDETableAdvanced({ jobs, onEdit, onDelete }) {
             </thead>
             <tbody className="divide-y divide-border">
               {table.getRowModel().rows.map((row) => (
-                <>
-                  <tr
-                    key={row.id}
-                    className="hover:bg-secondary/20 transition-colors"
-                  >
+                <React.Fragment key={row.id}>
+                  <tr className="hover:bg-secondary/20 transition-colors">
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
@@ -343,13 +381,13 @@ export default function SDETableAdvanced({ jobs, onEdit, onDelete }) {
                           <div>
                             <span className="font-medium">Hiring Season:</span>
                             <p className="text-muted-foreground">
-                              {row.original.Hiring_Season}
+                              {row.original.hiring_season}
                             </p>
                           </div>
                           <div>
                             <span className="font-medium">Intern Type:</span>
                             <p className="text-muted-foreground">
-                              {row.original.Intern_Type}
+                              {row.original.intern_type}
                             </p>
                           </div>
                           <div>
@@ -357,7 +395,7 @@ export default function SDETableAdvanced({ jobs, onEdit, onDelete }) {
                               PPO Probability:
                             </span>
                             <p className="text-muted-foreground">
-                              {row.original.PPO_Probability}
+                              {row.original.ppo_probability}
                             </p>
                           </div>
                           <div>
@@ -365,7 +403,7 @@ export default function SDETableAdvanced({ jobs, onEdit, onDelete }) {
                               Referral Friendly:
                             </span>
                             <p className="text-muted-foreground">
-                              {row.original.Referral_Friendly}
+                              {row.original.referral_friendly}
                             </p>
                           </div>
                           <div>
@@ -373,24 +411,36 @@ export default function SDETableAdvanced({ jobs, onEdit, onDelete }) {
                               Referral Status:
                             </span>
                             <p className="text-muted-foreground">
-                              {row.original.Referral_Status}
+                              {row.original.referral_status}
                             </p>
                           </div>
-                          {row.original.Referral_Name && (
+                          {row.original.referral_name && (
                             <div>
                               <span className="font-medium">
                                 Referral Contact:
                               </span>
                               <p className="text-muted-foreground">
-                                {row.original.Referral_Name}
+                                {row.original.referral_name}
                               </p>
                             </div>
                           )}
-                          {row.original.Notes && (
+                          {row.original.notes && (
                             <div className="col-span-2 md:col-span-3">
-                              <span className="font-medium">Notes:</span>
+                              <span className="font-medium">
+                                General Notes:
+                              </span>
                               <p className="text-muted-foreground">
-                                {row.original.Notes}
+                                {row.original.notes}
+                              </p>
+                            </div>
+                          )}
+                          {row.original.metadata?.interview_notes && (
+                            <div className="col-span-2 md:col-span-3">
+                              <span className="font-medium">
+                                Interview Experience:
+                              </span>
+                              <p className="text-muted-foreground whitespace-pre-line">
+                                {row.original.metadata.interview_notes}
                               </p>
                             </div>
                           )}
@@ -398,7 +448,7 @@ export default function SDETableAdvanced({ jobs, onEdit, onDelete }) {
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>

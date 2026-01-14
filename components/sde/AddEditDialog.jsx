@@ -10,27 +10,46 @@ import {
 
 export default function AddEditDialog({ job, onSave, onClose }) {
   const [formData, setFormData] = useState({
-    Company: "",
-    Category: "BigTech",
-    Country: "India",
-    Domain: "",
-    Role: "SDE Intern",
-    Hiring_Season: "Summer",
-    Intern_Type: "",
-    PPO_Probability: "Medium",
-    Referral_Friendly: "Medium",
-    Referral_Status: "Not Contacted",
-    Referral_Name: "",
-    LinkedIn_Profile: "",
-    Application_Status: "Not Applied",
-    Careers_Page: "",
-    Notes: "",
-    Priority: "3",
+    company: "",
+    category: "BigTech",
+    country: "India",
+    domain: "",
+    role: "SDE Intern",
+    hiring_season: "Summer",
+    intern_type: "",
+    ppo_probability: "Medium",
+    referral_friendly: "Medium",
+    referral_status: "Not Contacted",
+    referral_name: "",
+    linkedin_profile: "",
+    application_status: "Not Applied",
+    careers_page: "",
+    notes: "",
+    priority: 3,
+    interview_notes: "",
   });
 
   useEffect(() => {
     if (job) {
-      setFormData({ ...job });
+      setFormData({
+        company: job.company || "",
+        category: job.category || "BigTech",
+        country: job.country || "India",
+        domain: job.domain || "",
+        role: job.role || "SDE Intern",
+        hiring_season: job.hiring_season || "Summer",
+        intern_type: job.intern_type || "",
+        ppo_probability: job.ppo_probability || "Medium",
+        referral_friendly: job.referral_friendly || "Medium",
+        referral_status: job.referral_status || "Not Contacted",
+        referral_name: job.referral_name || "",
+        linkedin_profile: job.linkedin_profile || "",
+        application_status: job.application_status || "Not Applied",
+        careers_page: job.careers_page || "",
+        notes: job.notes || "",
+        priority: job.priority || 3,
+        interview_notes: job.metadata?.interview_notes || "",
+      });
     }
   }, [job]);
 
@@ -41,7 +60,19 @@ export default function AddEditDialog({ job, onSave, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+
+    // Extract interview_notes to save in metadata
+    const { interview_notes, ...jobData } = formData;
+
+    const dataToSave = {
+      ...jobData,
+      metadata: {
+        ...(job?.metadata || {}),
+        interview_notes: interview_notes || "",
+      },
+    };
+
+    onSave(dataToSave);
   };
 
   return (
@@ -73,8 +104,8 @@ export default function AddEditDialog({ job, onSave, onClose }) {
               </label>
               <input
                 type="text"
-                name="Company"
-                value={formData.Company}
+                name="company"
+                value={formData.company}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -86,8 +117,8 @@ export default function AddEditDialog({ job, onSave, onClose }) {
                 Category *
               </label>
               <select
-                name="Category"
-                value={formData.Category}
+                name="category"
+                value={formData.category}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
@@ -105,8 +136,8 @@ export default function AddEditDialog({ job, onSave, onClose }) {
               <label className="block text-sm font-medium mb-2">Role *</label>
               <input
                 type="text"
-                name="Role"
-                value={formData.Role}
+                name="role"
+                value={formData.role}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -117,8 +148,8 @@ export default function AddEditDialog({ job, onSave, onClose }) {
               <label className="block text-sm font-medium mb-2">Domain</label>
               <input
                 type="text"
-                name="Domain"
-                value={formData.Domain}
+                name="domain"
+                value={formData.domain}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -130,8 +161,8 @@ export default function AddEditDialog({ job, onSave, onClose }) {
             <div>
               <label className="block text-sm font-medium mb-2">Status</label>
               <select
-                name="Application_Status"
-                value={formData.Application_Status}
+                name="application_status"
+                value={formData.application_status}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
@@ -146,8 +177,8 @@ export default function AddEditDialog({ job, onSave, onClose }) {
             <div>
               <label className="block text-sm font-medium mb-2">Priority</label>
               <select
-                name="Priority"
-                value={formData.Priority}
+                name="priority"
+                value={formData.priority}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
@@ -163,8 +194,8 @@ export default function AddEditDialog({ job, onSave, onClose }) {
               <label className="block text-sm font-medium mb-2">Country</label>
               <input
                 type="text"
-                name="Country"
-                value={formData.Country}
+                name="country"
+                value={formData.country}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -178,8 +209,8 @@ export default function AddEditDialog({ job, onSave, onClose }) {
                 Referral Friendly
               </label>
               <select
-                name="Referral_Friendly"
-                value={formData.Referral_Friendly}
+                name="referral_friendly"
+                value={formData.referral_friendly}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
@@ -196,8 +227,8 @@ export default function AddEditDialog({ job, onSave, onClose }) {
                 Referral Status
               </label>
               <select
-                name="Referral_Status"
-                value={formData.Referral_Status}
+                name="referral_status"
+                value={formData.referral_status}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
@@ -210,7 +241,22 @@ export default function AddEditDialog({ job, onSave, onClose }) {
             </div>
           </div>
 
-          {/* Links */}
+          {/* Referral Contact */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Referral Contact Name
+            </label>
+            <input
+              type="text"
+              name="referral_name"
+              value={formData.referral_name}
+              onChange={handleChange}
+              placeholder="Who can refer you?"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          {/* Links and Notes */}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
@@ -218,8 +264,8 @@ export default function AddEditDialog({ job, onSave, onClose }) {
               </label>
               <input
                 type="url"
-                name="Careers_Page"
-                value={formData.Careers_Page}
+                name="careers_page"
+                value={formData.careers_page}
                 onChange={handleChange}
                 placeholder="https://..."
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -227,13 +273,33 @@ export default function AddEditDialog({ job, onSave, onClose }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Notes</label>
+              <label className="block text-sm font-medium mb-2">
+                General Notes
+              </label>
               <textarea
-                name="Notes"
-                value={formData.Notes}
+                name="notes"
+                value={formData.notes}
                 onChange={handleChange}
-                rows={3}
+                rows={2}
+                placeholder="Quick notes..."
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Interview Experience / Notes
+                <span className="text-xs text-muted-foreground ml-2">
+                  (Questions asked, feedback, process details...)
+                </span>
+              </label>
+              <textarea
+                name="interview_notes"
+                value={formData.interview_notes || ""}
+                onChange={handleChange}
+                rows={5}
+                placeholder="Describe your interview experience, questions asked, feedback received, next rounds..."
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-y"
               />
             </div>
           </div>
