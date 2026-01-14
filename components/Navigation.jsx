@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Briefcase, Target } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -52,6 +53,9 @@ export default function Navigation() {
                 </Link>
               );
             })}
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
           </div>
         </div>
       </div>

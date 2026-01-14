@@ -11,7 +11,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body className={inter.className}>
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
           <Navigation />
