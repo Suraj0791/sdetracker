@@ -12,8 +12,9 @@ import FilterSidebar from "@/components/sde/FilterSidebar";
 import AddEditDialog from "@/components/sde/AddEditDialog";
 import JobDetailsModal from "@/components/sde/JobDetailsModal";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function SDEPage() {
+function SDEContent() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [jobs, setJobs] = useState([]);
@@ -347,5 +348,19 @@ export default function SDEPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function SDEPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <SDEContent />
+    </Suspense>
   );
 }

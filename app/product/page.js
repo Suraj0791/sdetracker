@@ -12,8 +12,9 @@ import ProductFilters from "@/components/product/ProductFilters";
 import ProductDialog from "@/components/product/ProductDialog";
 import ProductDetailsModal from "@/components/product/ProductDetailsModal";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function ProductPage() {
+function ProductContent() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [jobs, setJobs] = useState([]);
@@ -341,5 +342,19 @@ export default function ProductPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function ProductPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <ProductContent />
+    </Suspense>
   );
 }
