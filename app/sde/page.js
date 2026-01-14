@@ -89,6 +89,19 @@ export default function SDEPage() {
       result = result.filter((job) => job.application_status === "Applied");
     } else if (activeFilter === "interviews") {
       result = result.filter((job) => job.application_status === "Interview");
+    } else if (activeFilter === "rejected") {
+      result = result.filter((job) => job.application_status === "Rejected");
+    } else if (activeFilter === "referred") {
+      result = result.filter((job) => job.referral_status === "Referred");
+    } else if (activeFilter === "bigTech") {
+      result = result.filter((job) => job.category === "BigTech");
+    } else if (activeFilter === "startup") {
+      result = result.filter(
+        (job) =>
+          job.category?.includes("Startup") ||
+          job.category === "Product" ||
+          job.category === "Indian Product"
+      );
     } else if (activeFilter === "highPriority") {
       result = result.filter((job) => parseInt(job.priority) >= 4);
     }

@@ -1,10 +1,28 @@
-import { Briefcase, CheckCircle, Clock, Star } from "lucide-react";
+import {
+  Briefcase,
+  CheckCircle,
+  Clock,
+  Star,
+  XCircle,
+  Users,
+  Building2,
+  Rocket,
+} from "lucide-react";
 
 export default function StatsCards({ jobs, onFilterClick, activeFilter }) {
   const stats = {
     total: jobs.length,
     applied: jobs.filter((j) => j.application_status === "Applied").length,
     interviews: jobs.filter((j) => j.application_status === "Interview").length,
+    rejected: jobs.filter((j) => j.application_status === "Rejected").length,
+    referred: jobs.filter((j) => j.referral_status === "Referred").length,
+    bigTech: jobs.filter((j) => j.category === "BigTech").length,
+    startup: jobs.filter(
+      (j) =>
+        j.category?.includes("Startup") ||
+        j.category === "Product" ||
+        j.category === "Indian Product"
+    ).length,
     highPriority: jobs.filter((j) => parseInt(j.priority) >= 4).length,
   };
 
@@ -32,6 +50,38 @@ export default function StatsCards({ jobs, onFilterClick, activeFilter }) {
       color: "text-purple-400",
       bgColor: "bg-purple-500/10",
       filter: "interviews",
+    },
+    {
+      label: "Rejected",
+      value: stats.rejected,
+      icon: XCircle,
+      color: "text-red-400",
+      bgColor: "bg-red-500/10",
+      filter: "rejected",
+    },
+    {
+      label: "Referred",
+      value: stats.referred,
+      icon: Users,
+      color: "text-green-400",
+      bgColor: "bg-green-500/10",
+      filter: "referred",
+    },
+    {
+      label: "BigTech",
+      value: stats.bigTech,
+      icon: Building2,
+      color: "text-cyan-400",
+      bgColor: "bg-cyan-500/10",
+      filter: "bigTech",
+    },
+    {
+      label: "Startup",
+      value: stats.startup,
+      icon: Rocket,
+      color: "text-pink-400",
+      bgColor: "bg-pink-500/10",
+      filter: "startup",
     },
     {
       label: "High Priority",
