@@ -37,3 +37,5 @@ npm run dev
 ## Data Storage
 
 All data is stored in browser localStorage. Export your data regularly as backup!
+
+
