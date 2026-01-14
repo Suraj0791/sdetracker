@@ -10,6 +10,7 @@ import ProductTable from "@/components/product/ProductTable";
 import ProductStats from "@/components/product/ProductStats";
 import ProductFilters from "@/components/product/ProductFilters";
 import ProductDialog from "@/components/product/ProductDialog";
+import ProductDetailsModal from "@/components/product/ProductDetailsModal";
 
 export default function ProductPage() {
   const router = useRouter();
@@ -27,6 +28,8 @@ export default function ProductPage() {
   const [editingJob, setEditingJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
+  const [viewingJob, setViewingJob] = useState(null);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -62,26 +65,64 @@ export default function ProductPage() {
     }
   };
 
+  // Handle quick filter from stats cards
+  const handleQuickFilter = (filter) => {
+    setActiveFilter(filter);
+    // Clear sidebar filters when using quick filter
+    if (filter !== "all") {
+      setFilters({
+        categories: [],
+        statuses: [],
+        priorities: [],
+      });
+    }
+  };
+
   // Filter jobs
   useEffect(() => {
     let result = [...jobs];
 
-    if (filters.categories.length > 0) {
-      result = result.filter((job) =>
-        filters.categories.includes(job.category)
+    // Apply quick filter from stats cards
+    if (activeFilter === "applied") {
+      result = result.filter((job) => job.application_status === "Applied");
+    } else if (activeFilter === "interviews") {
+      result = result.filter((job) => job.application_status === "Interview");
+    } else if (activeFilter === "rejected") {
+      result = result.filter((job) => job.application_status === "Rejected");
+    } else if (activeFilter === "referred") {
+      result = result.filter((job) => job.referral_status === "Referred");
+    } else if (activeFilter === "bigTech") {
+      result = result.filter((job) => job.category === "BigTech");
+    } else if (activeFilter === "startup") {
+      result = result.filter(
+        (job) =>
+          job.category?.includes("Startup") ||
+          job.category === "Product" ||
+          job.category === "Indian Product"
       );
+    } else if (activeFilter === "highPriority") {
+      result = result.filter((job) => parseInt(job.priority) >= 4);
     }
 
-    if (filters.statuses.length > 0) {
-      result = result.filter((job) =>
-        filters.statuses.includes(job.application_status)
-      );
-    }
+    // Apply sidebar filters (only if not using a specific quick filter or if quick filter is "all")
+    if (activeFilter === "all") {
+      if (filters.categories.length > 0) {
+        result = result.filter((job) =>
+          filters.categories.includes(job.category)
+        );
+      }
 
-    if (filters.priorities.length > 0) {
-      result = result.filter((job) =>
-        filters.priorities.includes(parseInt(job.priority))
-      );
+      if (filters.statuses.length > 0) {
+        result = result.filter((job) =>
+          filters.statuses.includes(job.application_status)
+        );
+      }
+
+      if (filters.priorities.length > 0) {
+        result = result.filter((job) =>
+          filters.priorities.includes(parseInt(job.priority))
+        );
+      }
     }
 
     if (searchQuery) {
@@ -96,7 +137,7 @@ export default function ProductPage() {
     }
 
     setFilteredJobs(result);
-  }, [jobs, filters, searchQuery]);
+  }, [jobs, filters, searchQuery, activeFilter]);
 
   const handleImportCSV = (event) => {
     const file = event.target.files?.[0];
@@ -221,7 +262,11 @@ export default function ProductPage() {
         </div>
       </div>
 
-      <ProductStats jobs={jobs} />
+      <ProductStats
+        jobs={jobs}
+        onFilterClick={handleQuickFilter}
+        activeFilter={activeFilter}
+      />
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
@@ -258,6 +303,7 @@ export default function ProductPage() {
             jobs={filteredJobs}
             onEdit={handleEditJob}
             onDelete={handleDeleteJob}
+            onViewDetails={setViewingJob}
           />
         </div>
       </div>
@@ -267,6 +313,14 @@ export default function ProductPage() {
           job={editingJob}
           onSave={handleSaveJob}
           onClose={() => setDialogOpen(false)}
+        />
+      )}
+
+      {viewingJob && (
+        <ProductDetailsModal
+          job={viewingJob}
+          onClose={() => setViewingJob(null)}
+          onEdit={handleEditJob}
         />
       )}
     </div>

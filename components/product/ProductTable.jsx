@@ -1,7 +1,12 @@
 import { Edit, Trash2, ExternalLink } from "lucide-react";
 import { PRIORITY_COLORS, STATUS_COLORS } from "@/lib/constants";
 
-export default function ProductTable({ jobs, onEdit, onDelete }) {
+export default function ProductTable({
+  jobs,
+  onEdit,
+  onDelete,
+  onViewDetails,
+}) {
   if (jobs.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-12 text-center">
@@ -54,14 +59,19 @@ export default function ProductTable({ jobs, onEdit, onDelete }) {
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div>
-                      <div className="font-medium">{job.Company}</div>
+                      <button
+                        onClick={() => onViewDetails(job)}
+                        className="font-medium hover:text-primary transition-colors text-left"
+                      >
+                        {job.company}
+                      </button>
                       <div className="text-sm text-muted-foreground">
-                        {job.Country}
+                        {job.country}
                       </div>
                     </div>
-                    {job.Careers_Page && (
+                    {job.careers_page && (
                       <a
-                        href={job.Careers_Page}
+                        href={job.careers_page}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary hover:text-primary/80"
@@ -73,15 +83,15 @@ export default function ProductTable({ jobs, onEdit, onDelete }) {
                 </td>
                 <td className="px-4 py-3">
                   <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-primary/10 text-primary">
-                    {job.Category}
+                    {job.category}
                   </span>
                 </td>
                 <td className="px-4 py-3">
                   <div className="text-sm">
-                    <div className="font-medium">{job.Target_Role}</div>
-                    {job.Product_Domain && (
+                    <div className="font-medium">{job.target_role}</div>
+                    {job.product_domain && (
                       <div className="text-muted-foreground">
-                        {job.Product_Domain}
+                        {job.product_domain}
                       </div>
                     )}
                   </div>
@@ -89,25 +99,25 @@ export default function ProductTable({ jobs, onEdit, onDelete }) {
                 <td className="px-4 py-3">
                   <span
                     className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
-                      STATUS_COLORS[job.Application_Status] ||
+                      STATUS_COLORS[job.application_status] ||
                       "bg-gray-500/10 text-gray-400"
                     }`}
                   >
-                    {job.Application_Status}
+                    {job.application_status}
                   </span>
                 </td>
                 <td className="px-4 py-3">
                   <span
                     className={`inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold border ${
-                      PRIORITY_COLORS[job.Priority] || PRIORITY_COLORS[3]
+                      PRIORITY_COLORS[job.priority] || PRIORITY_COLORS[3]
                     }`}
                   >
-                    {job.Priority}
+                    {job.priority}
                   </span>
                 </td>
                 <td className="px-4 py-3">
                   <span className="text-sm text-muted-foreground">
-                    {job.SQL_Level}
+                    {job.sql_level}
                   </span>
                 </td>
                 <td className="px-4 py-3">

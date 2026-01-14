@@ -10,34 +10,60 @@ import {
 
 export default function ProductDialog({ job, onSave, onClose }) {
   const [formData, setFormData] = useState({
-    Company: "",
-    Category: "BigTech",
-    Country: "India",
-    Product_Domain: "",
-    Target_Role: "Product Analyst Intern",
-    Hiring_Season: "Summer",
-    Internship_Type: "",
-    Conversion_Potential: "Medium",
-    Case_Interview_Focus: "",
-    SQL_Level: "Intermediate",
-    Product_Sense_Level: "Intermediate",
-    Analytics_Tools: "",
-    Stipend_Monthly: "",
-    Expected_FTE_CTC: "",
-    Referral_Friendly: "Medium",
-    Referral_Status: "Not Contacted",
-    Referral_Name: "",
-    LinkedIn_Profile: "",
-    Application_Status: "Not Applied",
-    Followup_Date: "",
-    Careers_Page: "",
-    Notes: "",
-    Priority: "3",
+    company: "",
+    category: "BigTech",
+    country: "India",
+    product_domain: "",
+    target_role: "Product Analyst Intern",
+    hiring_season: "Summer",
+    internship_type: "",
+    conversion_potential: "Medium",
+    case_interview_focus: "",
+    sql_level: "Intermediate",
+    product_sense_level: "Intermediate",
+    analytics_tools: "",
+    stipend_monthly: "",
+    expected_fte_ctc: "",
+    referral_friendly: "Medium",
+    referral_status: "Not Contacted",
+    referral_name: "",
+    linkedin_profile: "",
+    application_status: "Not Applied",
+    followup_date: "",
+    careers_page: "",
+    notes: "",
+    priority: 3,
+    interview_notes: "",
   });
 
   useEffect(() => {
     if (job) {
-      setFormData({ ...job });
+      setFormData({
+        company: job.company || "",
+        category: job.category || "BigTech",
+        country: job.country || "India",
+        product_domain: job.product_domain || "",
+        target_role: job.target_role || "Product Analyst Intern",
+        hiring_season: job.hiring_season || "Summer",
+        internship_type: job.internship_type || "",
+        conversion_potential: job.conversion_potential || "Medium",
+        case_interview_focus: job.case_interview_focus || "",
+        sql_level: job.sql_level || "Intermediate",
+        product_sense_level: job.product_sense_level || "Intermediate",
+        analytics_tools: job.analytics_tools || "",
+        stipend_monthly: job.stipend_monthly || "",
+        expected_fte_ctc: job.expected_fte_ctc || "",
+        referral_friendly: job.referral_friendly || "Medium",
+        referral_status: job.referral_status || "Not Contacted",
+        referral_name: job.referral_name || "",
+        linkedin_profile: job.linkedin_profile || "",
+        application_status: job.application_status || "Not Applied",
+        followup_date: job.followup_date || "",
+        careers_page: job.careers_page || "",
+        notes: job.notes || "",
+        priority: job.priority || 3,
+        interview_notes: job.metadata?.interview_notes || "",
+      });
     }
   }, [job]);
 
@@ -48,7 +74,19 @@ export default function ProductDialog({ job, onSave, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+
+    // Extract interview_notes to save in metadata
+    const { interview_notes, ...jobData } = formData;
+
+    const dataToSave = {
+      ...jobData,
+      metadata: {
+        ...(job?.metadata || {}),
+        interview_notes: interview_notes || "",
+      },
+    };
+
+    onSave(dataToSave);
   };
 
   return (
@@ -70,6 +108,7 @@ export default function ProductDialog({ job, onSave, onClose }) {
           onSubmit={handleSubmit}
           className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-140px)] scrollbar-thin"
         >
+          {/* Company Info */}
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">
@@ -77,8 +116,8 @@ export default function ProductDialog({ job, onSave, onClose }) {
               </label>
               <input
                 type="text"
-                name="Company"
-                value={formData.Company}
+                name="company"
+                value={formData.company}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -90,8 +129,8 @@ export default function ProductDialog({ job, onSave, onClose }) {
                 Category *
               </label>
               <select
-                name="Category"
-                value={formData.Category}
+                name="category"
+                value={formData.category}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
@@ -109,8 +148,8 @@ export default function ProductDialog({ job, onSave, onClose }) {
               <label className="block text-sm font-medium mb-2">Role *</label>
               <input
                 type="text"
-                name="Target_Role"
-                value={formData.Target_Role}
+                name="target_role"
+                value={formData.target_role}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -123,8 +162,8 @@ export default function ProductDialog({ job, onSave, onClose }) {
               </label>
               <input
                 type="text"
-                name="Product_Domain"
-                value={formData.Product_Domain}
+                name="product_domain"
+                value={formData.product_domain}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -135,8 +174,8 @@ export default function ProductDialog({ job, onSave, onClose }) {
             <div>
               <label className="block text-sm font-medium mb-2">Status</label>
               <select
-                name="Application_Status"
-                value={formData.Application_Status}
+                name="application_status"
+                value={formData.application_status}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
@@ -151,8 +190,8 @@ export default function ProductDialog({ job, onSave, onClose }) {
             <div>
               <label className="block text-sm font-medium mb-2">Priority</label>
               <select
-                name="Priority"
-                value={formData.Priority}
+                name="priority"
+                value={formData.priority}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
@@ -169,8 +208,8 @@ export default function ProductDialog({ job, onSave, onClose }) {
                 SQL Level
               </label>
               <select
-                name="SQL_Level"
-                value={formData.SQL_Level}
+                name="sql_level"
+                value={formData.sql_level}
                 onChange={handleChange}
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
@@ -189,8 +228,8 @@ export default function ProductDialog({ job, onSave, onClose }) {
               </label>
               <input
                 type="text"
-                name="Analytics_Tools"
-                value={formData.Analytics_Tools}
+                name="analytics_tools"
+                value={formData.analytics_tools}
                 onChange={handleChange}
                 placeholder="e.g., SQL, Excel, Tableau"
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -203,9 +242,43 @@ export default function ProductDialog({ job, onSave, onClose }) {
               </label>
               <input
                 type="text"
-                name="Case_Interview_Focus"
-                value={formData.Case_Interview_Focus}
+                name="case_interview_focus"
+                value={formData.case_interview_focus}
                 onChange={handleChange}
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
+
+          {/* Referral Contact */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Referral Status
+              </label>
+              <select
+                name="referral_status"
+                value={formData.referral_status}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                {REFERRAL_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Referral Contact Name
+              </label>
+              <input
+                type="text"
+                name="referral_name"
+                value={formData.referral_name}
+                onChange={handleChange}
+                placeholder="Who can refer you?"
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -218,8 +291,8 @@ export default function ProductDialog({ job, onSave, onClose }) {
               </label>
               <input
                 type="url"
-                name="Careers_Page"
-                value={formData.Careers_Page}
+                name="careers_page"
+                value={formData.careers_page}
                 onChange={handleChange}
                 placeholder="https://..."
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
@@ -227,19 +300,39 @@ export default function ProductDialog({ job, onSave, onClose }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Notes</label>
+              <label className="block text-sm font-medium mb-2">
+                General Notes
+              </label>
               <textarea
-                name="Notes"
-                value={formData.Notes}
+                name="notes"
+                value={formData.notes}
                 onChange={handleChange}
-                rows={3}
+                rows={2}
+                placeholder="Quick notes..."
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Interview Experience / Notes
+                <span className="text-xs text-muted-foreground ml-2">
+                  (Questions asked, feedback, process details...)
+                </span>
+              </label>
+              <textarea
+                name="interview_notes"
+                value={formData.interview_notes || ""}
+                onChange={handleChange}
+                rows={4}
+                placeholder="Describe your interview experience..."
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-y"
               />
             </div>
           </div>
         </form>
 
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-border">
+        <div className="flex items-center justify-end gap-3 p-6 border-t border-border bg-secondary/20">
           <button
             type="button"
             onClick={onClose}
