@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Upload, Download, Plus, Search, Filter } from "lucide-react";
-import { STORAGE_KEYS } from "@/lib/constants";
-import { jobOperations, downloadFile } from "@/lib/dataManager";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
+import { Upload, Download, Plus, Search, Filter, Loader2 } from "lucide-react";
+import { supabaseJobOps, downloadFile } from "@/lib/supabaseDataManager";
+import { PRODUCT_SEED_DATA } from "@/lib/productSeedData";
 import ProductTable from "@/components/product/ProductTable";
 import ProductStats from "@/components/product/ProductStats";
 import ProductFilters from "@/components/product/ProductFilters";
 import ProductDialog from "@/components/product/ProductDialog";
 
 export default function ProductPage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -21,31 +25,62 @@ export default function ProductPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
 
+  // Redirect if not logged in
   useEffect(() => {
-    const loadedJobs = jobOperations.getAll(STORAGE_KEYS.PRODUCT_JOBS);
-    setJobs(loadedJobs);
-    setFilteredJobs(loadedJobs);
-  }, []);
+    if (!authLoading && !user) {
+      router.push("/auth/login");
+    }
+  }, [user, authLoading, router]);
 
+  // Load jobs and auto-seed if needed
+  useEffect(() => {
+    if (user) {
+      loadJobs();
+    }
+  }, [user]);
+
+  const loadJobs = async () => {
+    setLoading(true);
+    setSeeding(true);
+
+    try {
+      // Auto-seed for new users
+      await supabaseJobOps.autoSeed("product_jobs", PRODUCT_SEED_DATA);
+
+      // Load all jobs
+      const loadedJobs = await supabaseJobOps.getAll("product_jobs");
+      setJobs(loadedJobs);
+      setFilteredJobs(loadedJobs);
+    } catch (error) {
+      console.error("Error loading jobs:", error);
+    } finally {
+      setLoading(false);
+      setSeeding(false);
+    }
+  };
+
+  // Filter jobs
   useEffect(() => {
     let result = [...jobs];
 
     if (filters.categories.length > 0) {
       result = result.filter((job) =>
-        filters.categories.includes(job.Category)
+        filters.categories.includes(job.category)
       );
     }
 
     if (filters.statuses.length > 0) {
       result = result.filter((job) =>
-        filters.statuses.includes(job.Application_Status)
+        filters.statuses.includes(job.application_status)
       );
     }
 
     if (filters.priorities.length > 0) {
       result = result.filter((job) =>
-        filters.priorities.includes(parseInt(job.Priority))
+        filters.priorities.includes(parseInt(job.priority))
       );
     }
 
@@ -53,10 +88,10 @@ export default function ProductPage() {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (job) =>
-          job.Company?.toLowerCase().includes(query) ||
-          job.Target_Role?.toLowerCase().includes(query) ||
-          job.Product_Domain?.toLowerCase().includes(query) ||
-          job.Notes?.toLowerCase().includes(query)
+          job.company?.toLowerCase().includes(query) ||
+          job.target_role?.toLowerCase().includes(query) ||
+          job.product_domain?.toLowerCase().includes(query) ||
+          job.notes?.toLowerCase().includes(query)
       );
     }
 
@@ -71,12 +106,9 @@ export default function ProductPage() {
     reader.onload = async (e) => {
       try {
         const csvText = e.target?.result;
-        const imported = await jobOperations.importCSV(
-          STORAGE_KEYS.PRODUCT_JOBS,
-          csvText
-        );
-        setJobs(imported);
-        alert(`Successfully imported ${imported.length} jobs!`);
+        await supabaseJobOps.importCSV("product_jobs", csvText);
+        await loadJobs();
+        alert(`Successfully imported jobs!`);
       } catch (error) {
         alert("Error importing CSV: " + error.message);
       }
@@ -84,12 +116,16 @@ export default function ProductPage() {
     reader.readAsText(file);
   };
 
-  const handleExportCSV = () => {
-    const csv = jobOperations.exportCSV(STORAGE_KEYS.PRODUCT_JOBS);
-    downloadFile(
-      csv,
-      `product-jobs-${new Date().toISOString().split("T")[0]}.csv`
-    );
+  const handleExportCSV = async () => {
+    try {
+      const csv = await supabaseJobOps.exportCSV("product_jobs");
+      downloadFile(
+        csv,
+        `product-jobs-${new Date().toISOString().split("T")[0]}.csv`
+      );
+    } catch (error) {
+      alert("Error exporting CSV: " + error.message);
+    }
   };
 
   const handleAddJob = () => {
@@ -102,24 +138,45 @@ export default function ProductPage() {
     setDialogOpen(true);
   };
 
-  const handleSaveJob = (jobData) => {
-    if (editingJob) {
-      jobOperations.update(STORAGE_KEYS.PRODUCT_JOBS, editingJob.id, jobData);
-    } else {
-      jobOperations.add(STORAGE_KEYS.PRODUCT_JOBS, jobData);
+  const handleSaveJob = async (jobData) => {
+    try {
+      if (editingJob) {
+        await supabaseJobOps.update("product_jobs", editingJob.id, jobData);
+      } else {
+        await supabaseJobOps.add("product_jobs", jobData);
+      }
+      await loadJobs();
+      setDialogOpen(false);
+    } catch (error) {
+      alert("Error saving job: " + error.message);
     }
-    const updated = jobOperations.getAll(STORAGE_KEYS.PRODUCT_JOBS);
-    setJobs(updated);
-    setDialogOpen(false);
   };
 
-  const handleDeleteJob = (id) => {
+  const handleDeleteJob = async (id) => {
     if (confirm("Are you sure you want to delete this job application?")) {
-      jobOperations.delete(STORAGE_KEYS.PRODUCT_JOBS, id);
-      const updated = jobOperations.getAll(STORAGE_KEYS.PRODUCT_JOBS);
-      setJobs(updated);
+      try {
+        await supabaseJobOps.delete("product_jobs", id);
+        await loadJobs();
+      } catch (error) {
+        alert("Error deleting job: " + error.message);
+      }
     }
   };
+
+  if (authLoading || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">
+            {seeding ? "Loading your companies..." : "Loading..."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="space-y-6">

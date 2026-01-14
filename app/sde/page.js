@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Upload, Download, Plus, Search, Filter } from "lucide-react";
-import { STORAGE_KEYS } from "@/lib/constants";
-import { jobOperations, downloadFile } from "@/lib/dataManager";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
+import { Upload, Download, Plus, Search, Filter, Loader2 } from "lucide-react";
+import { supabaseJobOps, downloadFile } from "@/lib/supabaseDataManager";
+import { SDE_SEED_DATA } from "@/lib/seedData";
 import JobsTable from "@/components/sde/JobsTable";
 import StatsCards from "@/components/sde/StatsCards";
 import FilterSidebar from "@/components/sde/FilterSidebar";
 import AddEditDialog from "@/components/sde/AddEditDialog";
 
 export default function SDEPage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,55 +26,79 @@ export default function SDEPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
 
-  // Load jobs from localStorage
+  // Redirect if not logged in
   useEffect(() => {
-    const loadedJobs = jobOperations.getAll(STORAGE_KEYS.SDE_JOBS);
-    setJobs(loadedJobs);
-    setFilteredJobs(loadedJobs);
-  }, []);
+    if (!authLoading && !user) {
+      router.push("/auth/login");
+    }
+  }, [user, authLoading, router]);
 
-  // Apply filters and search
+  // Load jobs and auto-seed if needed
+  useEffect(() => {
+    if (user) {
+      loadJobs();
+    }
+  }, [user]);
+
+  const loadJobs = async () => {
+    setLoading(true);
+    setSeeding(true);
+
+    try {
+      // Auto-seed for new users
+      await supabaseJobOps.autoSeed("sde_jobs", SDE_SEED_DATA);
+
+      // Load all jobs
+      const loadedJobs = await supabaseJobOps.getAll("sde_jobs");
+      setJobs(loadedJobs);
+      setFilteredJobs(loadedJobs);
+    } catch (error) {
+      console.error("Error loading jobs:", error);
+    } finally {
+      setLoading(false);
+      setSeeding(false);
+    }
+  };
+
+  // Filter jobs
   useEffect(() => {
     let result = [...jobs];
 
-    // Apply category filter
     if (filters.categories.length > 0) {
       result = result.filter((job) =>
-        filters.categories.includes(job.Category)
+        filters.categories.includes(job.category)
       );
     }
 
-    // Apply status filter
     if (filters.statuses.length > 0) {
       result = result.filter((job) =>
-        filters.statuses.includes(job.Application_Status)
+        filters.statuses.includes(job.application_status)
       );
     }
 
-    // Apply priority filter
     if (filters.priorities.length > 0) {
       result = result.filter((job) =>
-        filters.priorities.includes(parseInt(job.Priority))
+        filters.priorities.includes(parseInt(job.priority))
       );
     }
 
-    // Apply referral friendly filter
     if (filters.referralFriendly.length > 0) {
       result = result.filter((job) =>
-        filters.referralFriendly.includes(job.Referral_Friendly)
+        filters.referralFriendly.includes(job.referral_friendly)
       );
     }
 
-    // Apply search
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (job) =>
-          job.Company?.toLowerCase().includes(query) ||
-          job.Role?.toLowerCase().includes(query) ||
-          job.Domain?.toLowerCase().includes(query) ||
-          job.Notes?.toLowerCase().includes(query)
+          job.company?.toLowerCase().includes(query) ||
+          job.role?.toLowerCase().includes(query) ||
+          job.domain?.toLowerCase().includes(query) ||
+          job.notes?.toLowerCase().includes(query)
       );
     }
 
@@ -85,12 +113,9 @@ export default function SDEPage() {
     reader.onload = async (e) => {
       try {
         const csvText = e.target?.result;
-        const imported = await jobOperations.importCSV(
-          STORAGE_KEYS.SDE_JOBS,
-          csvText
-        );
-        setJobs(imported);
-        alert(`Successfully imported ${imported.length} jobs!`);
+        await supabaseJobOps.importCSV("sde_jobs", csvText);
+        await loadJobs();
+        alert(`Successfully imported jobs!`);
       } catch (error) {
         alert("Error importing CSV: " + error.message);
       }
@@ -98,9 +123,16 @@ export default function SDEPage() {
     reader.readAsText(file);
   };
 
-  const handleExportCSV = () => {
-    const csv = jobOperations.exportCSV(STORAGE_KEYS.SDE_JOBS);
-    downloadFile(csv, `sde-jobs-${new Date().toISOString().split("T")[0]}.csv`);
+  const handleExportCSV = async () => {
+    try {
+      const csv = await supabaseJobOps.exportCSV("sde_jobs");
+      downloadFile(
+        csv,
+        `sde-jobs-${new Date().toISOString().split("T")[0]}.csv`
+      );
+    } catch (error) {
+      alert("Error exporting CSV: " + error.message);
+    }
   };
 
   const handleAddJob = () => {
@@ -113,24 +145,45 @@ export default function SDEPage() {
     setDialogOpen(true);
   };
 
-  const handleSaveJob = (jobData) => {
-    if (editingJob) {
-      jobOperations.update(STORAGE_KEYS.SDE_JOBS, editingJob.id, jobData);
-    } else {
-      jobOperations.add(STORAGE_KEYS.SDE_JOBS, jobData);
+  const handleSaveJob = async (jobData) => {
+    try {
+      if (editingJob) {
+        await supabaseJobOps.update("sde_jobs", editingJob.id, jobData);
+      } else {
+        await supabaseJobOps.add("sde_jobs", jobData);
+      }
+      await loadJobs();
+      setDialogOpen(false);
+    } catch (error) {
+      alert("Error saving job: " + error.message);
     }
-    const updated = jobOperations.getAll(STORAGE_KEYS.SDE_JOBS);
-    setJobs(updated);
-    setDialogOpen(false);
   };
 
-  const handleDeleteJob = (id) => {
+  const handleDeleteJob = async (id) => {
     if (confirm("Are you sure you want to delete this job application?")) {
-      jobOperations.delete(STORAGE_KEYS.SDE_JOBS, id);
-      const updated = jobOperations.getAll(STORAGE_KEYS.SDE_JOBS);
-      setJobs(updated);
+      try {
+        await supabaseJobOps.delete("sde_jobs", id);
+        await loadJobs();
+      } catch (error) {
+        alert("Error deleting job: " + error.message);
+      }
     }
   };
+
+  if (authLoading || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">
+            {seeding ? "Loading your companies..." : "Loading..."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="space-y-6">
@@ -139,12 +192,11 @@ export default function SDEPage() {
         <div>
           <h1 className="text-3xl font-bold">SDE Job Tracker</h1>
           <p className="text-muted-foreground mt-1">
-            Track your software engineering applications and interviews
+            Track your software engineering applications
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Import CSV */}
           <label className="cursor-pointer">
             <input
               type="file"
@@ -158,7 +210,6 @@ export default function SDEPage() {
             </div>
           </label>
 
-          {/* Export CSV */}
           <button
             onClick={handleExportCSV}
             className="flex items-center gap-2 px-4 py-2 bg-secondary text-sm font-medium rounded-lg hover:bg-secondary/80 transition-colors"
@@ -167,7 +218,6 @@ export default function SDEPage() {
             Export CSV
           </button>
 
-          {/* Add Job */}
           <button
             onClick={handleAddJob}
             className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
@@ -178,10 +228,8 @@ export default function SDEPage() {
         </div>
       </div>
 
-      {/* Stats */}
       <StatsCards jobs={jobs} />
 
-      {/* Search and Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -207,14 +255,11 @@ export default function SDEPage() {
         </button>
       </div>
 
-      {/* Main Content */}
       <div className="grid lg:grid-cols-[280px_1fr] gap-6">
-        {/* Filter Sidebar */}
         {showFilters && (
           <FilterSidebar filters={filters} setFilters={setFilters} />
         )}
 
-        {/* Jobs Table */}
         <div className={showFilters ? "" : "lg:col-span-2"}>
           <JobsTable
             jobs={filteredJobs}
@@ -224,7 +269,6 @@ export default function SDEPage() {
         </div>
       </div>
 
-      {/* Add/Edit Dialog */}
       {dialogOpen && (
         <AddEditDialog
           job={editingJob}
